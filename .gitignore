@@ -1,0 +1,13 @@
+/Debug
+/Core
+/Middlewares
+/Drivers
+*.elf
+*~
+*.o
+*.list
+*.map
+makefile
+/.settings
+*.launch
+

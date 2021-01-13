@@ -1,0 +1,6 @@
+[submodule "dosimeter"]
+	path = dosimeter
+	url = https://github.com/Igor1101/dosimeter.git
+[submodule "at_simmodule"]
+	path = at_simmodule
+	url = https://github.com/Igor1101/at_simmodule.git
