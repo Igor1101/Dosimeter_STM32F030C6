@@ -5,7 +5,7 @@
  *      Author: igor
  */
 
-#include "stm32f0xx_hal.h"
+#include MCU_HEADER
 #include "reset_cause.h"
 /// @brief      Obtain the STM32 system reset cause
 /// @param      None

@@ -1,4 +1,4 @@
-#include "stm32f0xx_hal.h"
+#include MCU_HEADER
 #include "usart.h"
 #include "gpio.h"
 #include "iwdg.h"

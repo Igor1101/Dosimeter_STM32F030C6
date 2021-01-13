@@ -1,7 +1,7 @@
 /*
  * serial.c
  */
-#include "stm32f0xx_hal.h"
+#include MCU_HEADER
 #include "serial.h"
 #include <string.h>
 #include <stdarg.h>
