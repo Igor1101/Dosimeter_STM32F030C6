@@ -5,7 +5,7 @@
 #ifndef INC_SERIAL_H_
 #define INC_SERIAL_H_
 
-#include "stm32f4xx_hal.h"
+#include "stm32f0xx_hal.h"
 // defined local definitions for UARTs
 #define MAX_FORMAT_TXT_SZ 1024
 #define MAX_INPUT_SZ	1024

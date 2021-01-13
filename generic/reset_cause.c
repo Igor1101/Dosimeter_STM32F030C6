@@ -5,7 +5,7 @@
  *      Author: igor
  */
 
-#include "stm32f4xx_hal.h"
+#include "stm32f0xx_hal.h"
 #include "reset_cause.h"
 /// @brief      Obtain the STM32 system reset cause
 /// @param      None
@@ -40,7 +40,7 @@ reset_cause_t reset_cause_get(void)
     }
     // Needs to come *after* checking the `RCC_FLAG_PORRST` flag in order to ensure first that the reset cause is
     // NOT a POR/PDR reset. See note below.
-    else if (__HAL_RCC_GET_FLAG(RCC_FLAG_BORRST))
+    else if (__HAL_RCC_GET_FLAG(RCC_FLAG_PORRST))
     {
         reset_cause = RESET_CAUSE_BROWNOUT_RESET;
     }

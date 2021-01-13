@@ -1,7 +1,7 @@
 /*
  * serial.c
  */
-#include "stm32f4xx_hal.h"
+#include "stm32f0xx_hal.h"
 #include "serial.h"
 #include <string.h>
 #include <stdarg.h>
@@ -66,8 +66,8 @@ void serial_IT_enable(serial_t*huart)
 {
 	if(huart == &huart1)
 		USART1->CR1 |= USART_CR1_RXNEIE;
-	if(huart == &huart2)
-		USART2->CR1 |= USART_CR1_RXNEIE;
+	//if(huart == &huart2)
+	//	USART2->CR1 |= USART_CR1_RXNEIE;
 }
 
 // block and receive data
@@ -90,7 +90,8 @@ void USART2_IRQHandler(void)
 	if(receiving_answer)
 		HAL_UART_IRQHandler(&huart2);
 	// simply get a char
+	/*
 	 if ( USART2->SR & USART_SR_RXNE) {
 		 pr_debugf("charrecv:%c", USART2->DR);
-	 }
+	 }*/
 }
