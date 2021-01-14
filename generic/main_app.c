@@ -2,6 +2,9 @@
 #include "usart.h"
 #include "gpio.h"
 #include "iwdg.h"
+#include "i2c.h"
+#include "dma.h"
+#include "display.h"
 #include <generic/serial.h>
 #include <dosimeter/geiger_counter.h>
 #include "reset_cause.h"
@@ -28,6 +31,13 @@ int main(void)
 	MX_I2C1_Init();
 	pr_debugln("started peripherals");
 	pr_debugln("Reset status:%s", reset_cause_get_name(res));
+	// display
+
+	if(display_scan()) {
+		uint16_t addr;
+		display_addr(&addr);
+		pr_debugln("display found at 0x%x", addr);
+	}
 	while (1) {
 		// reset watchdog
 		//__HAL_IWDG_RELOAD_COUNTER(&hiwdg);
@@ -35,14 +45,3 @@ int main(void)
 		//HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
 	}
 }
-// interrupt handlers
-// Systick handler
-
-void SysTick_Handler(void)
-{
-	events_counter++;
-	if(events_counter%60000 == 0) {
-		tim_geiger_counter_callback_1m(NULL);
-	}
-}
-
