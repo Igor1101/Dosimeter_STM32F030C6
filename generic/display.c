@@ -7,6 +7,10 @@
 
 #include MCU_HEADER
 #include <stdbool.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/types.h>
 #include "i2c.h"
 #include "display.h"
 
@@ -15,6 +19,44 @@ static bool addr_correct = false;
 static uint16_t addr;
 static bool backlight = true;
 const uint32_t LCD_WAIT =  (5);
+
+// tty
+static uint8_t ttybuf[DLINES][DLINECHARS];
+
+void tty_puts(char*str)
+{
+	// for each string copy to the next
+	for(int i=0; i<DLINES; i++) {
+		memcpy(ttybuf[i], ttybuf[i+1], DLINECHARS);
+	}
+	memset(ttybuf[DLINES-1], ' ', DLINECHARS);
+	memcpy((char*)ttybuf[DLINES-1], str, strlen(str));
+	tty_flush();
+	display_set_DDRAM(DLINE3+strlen(str));
+}
+
+int tty_println(char*format, ...)
+{
+	va_list arg;
+	va_start(arg, format);
+	static char res[DLINECHARS];
+	vsnprintf(res, DLINECHARS, format, arg);
+	tty_puts(res);
+	va_end(arg);
+	return 0;
+}
+
+void tty_flush(void)
+{
+	display_set_DDRAM(DLINE0);
+	display_write(ttybuf[0], DLINECHARS);
+	display_set_DDRAM(DLINE1);
+	display_write(ttybuf[1], DLINECHARS);
+	display_set_DDRAM(DLINE2);
+	display_write(ttybuf[2], DLINECHARS);
+	display_set_DDRAM(DLINE3);
+	display_write(ttybuf[3], DLINECHARS);
+}
 
 bool display_addr(uint16_t*addr_out)
 {
@@ -37,8 +79,28 @@ bool display_scan(void)
     return false;
 }
 
+void display_init(void)
+{
+	// set 4-bit mode, 2 lines, 5x7 format
+    display_cmd(C_FSET | C_FSET_DL );
+    // set display & cursor home (keep this!)
+    display_cmd(C_RETHOME);
+    // set display, cursor on
+    display_cmd(C_CTRL| C_CTRL_DISP | C_CTRL_CURSOR | C_CTRL_BLINK);
+    // clear display (optional here)
+    display_cmd(C_CLR);
+}
 HAL_StatusTypeDef display_bus(uint16_t data)
 {
+	// if display is not initialized
+	if(!addr_correct) {
+		// then find and initialize it!
+		display_scan();
+		// initialize it if found ! (this may cause short recursion)
+		if(display_addr(NULL)) {
+			display_init();
+		}
+	}
 	/*
 	 * local software display_bus has the following struct:
 	 * | BACKLIGHT | EN | RW | RS | 8-bit user data |
@@ -107,4 +169,20 @@ HAL_StatusTypeDef display_set_DDRAM(uint8_t addr)
 HAL_StatusTypeDef display_set_CGRAM(uint8_t addr)
 {
 	return display_cmd(C_CGRAM|addr);
+}
+
+ssize_t display_write(const void *buf, size_t count)
+{
+	ssize_t i;
+	for(i=0; i<count; i++) {
+		if(display_write_RAM(((uint8_t*)buf)[i]) != HAL_OK) {
+			return i;
+		}
+	}
+	return i;
+}
+
+void display_puts(char*str)
+{
+	display_write(str, strlen(str));
 }

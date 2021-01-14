@@ -9,8 +9,11 @@
 #define DISPLAY_H_
 #include MCU_HEADER
 #include <stdbool.h>
+#include <sys/types.h>
 #include "i2c.h"
 // lcd 2004a
+#define DLINES 4
+#define DLINECHARS 20
  // CMDs
 // clear display
 #define C_CLR		0b00000001
@@ -73,5 +76,10 @@ HAL_StatusTypeDef display_bus_conf(uint16_t data);
 HAL_StatusTypeDef display_cmd(uint8_t cmd);
 HAL_StatusTypeDef display_write_RAM(uint8_t data);
 HAL_StatusTypeDef display_set_DDRAM(uint8_t addr);
+ssize_t display_write(const void *buf, size_t count);
+void tty_flush(void);
+void tty_puts(char*str);
+int tty_println(char*format, ...);
+void display_init(void);
 
 #endif /* DISPLAY_H_ */
