@@ -38,7 +38,27 @@ int main(void)
 		display_addr(&addr);
 		pr_debugln("display found at 0x%x", addr);
 	}
+    // set 4-bit mode, 2 lines, 5x7 format
+    display_cmd(C_FSET | C_FSET_DL );
+    // set display & cursor home (keep this!)
+    display_cmd(C_RETHOME);
+    // set display, cursor on
+    display_cmd(C_CTRL| C_CTRL_DISP | C_CTRL_CURSOR | C_CTRL_BLINK);
+    // clear display (optional here)
+    display_cmd(C_CLR);
+    uint8_t i=0;
+    display_set_DDRAM(DLINE0);
+    display_write_RAM('1');
+    display_set_DDRAM(DLINE1);
+    display_write_RAM('2');
+    display_set_DDRAM(DLINE2);
+    display_write_RAM('3');
+    display_set_DDRAM(DLINE3);
+    display_write_RAM('4');
 	while (1) {
+		//display_write_RAM(i);
+		//i++;
+		//HAL_Delay(300);
 		// reset watchdog
 		//__HAL_IWDG_RELOAD_COUNTER(&hiwdg);
 		// goto sleep
