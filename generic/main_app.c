@@ -4,6 +4,7 @@
 #include "iwdg.h"
 #include "i2c.h"
 #include "dma.h"
+#include "rtc.h"
 #include "display.h"
 #include <generic/serial.h>
 #include <dosimeter/geiger_counter.h>
@@ -12,6 +13,8 @@ extern void SystemClock_Config(void);
 
 static int events_counter;
 
+	int i=0;
+	bool sygnal = false;
 int main(void)
 {
 	// here get reset status(should be done before initializing peripherals)
@@ -29,8 +32,16 @@ int main(void)
 	//MX_USART2_UART_Init();
 	MX_DMA_Init();
 	MX_I2C1_Init();
+	// init RTC
+	MX_RTC_Init();
 	tty_println("%s", reset_cause_get_name(res));
+
 	while (1) {
+		if(sygnal) {
+			tty_println("%i", i);
+			sygnal = false;
+		}
+		__WFI();
 		//display_write_RAM(i);
 		//i++;
 		//HAL_Delay(300);
@@ -39,4 +50,15 @@ int main(void)
 		// goto sleep
 		//HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
 	}
+}
+/**
+  * @brief  Alarm A callback.
+  * @param  hrtc RTC handle
+  * @retval None
+  */
+void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
+{
+	//tty_println("RTC CALLBACK");
+		i++;
+		sygnal = true;
 }
