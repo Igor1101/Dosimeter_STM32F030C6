@@ -18,13 +18,18 @@
 static bool addr_correct = false;
 static uint16_t addr;
 static bool backlight = true;
-const uint32_t LCD_WAIT =  (5);
+static const uint32_t LCD_WAIT =  (5);
 
 // tty
 static uint8_t ttybuf[DLINES][DLINECHARS];
 
 void tty_puts(char*str)
 {
+	static bool first_time = true;
+	if(first_time) {
+		first_time = false;
+		memset(ttybuf, ' ', sizeof ttybuf);
+	}
 	// for each string copy to the next
 	for(int i=0; i<DLINES; i++) {
 		memcpy(ttybuf[i], ttybuf[i+1], DLINECHARS);
