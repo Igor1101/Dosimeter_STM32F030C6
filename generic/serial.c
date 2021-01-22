@@ -34,6 +34,11 @@ int serial_printf(serial_t*huart, char*format, ...)
 	return result;
 }
 
+void serial_clear(void)
+{
+	memset(inputbuf, 0, sizeof inputbuf);
+}
+
 int serial_println(serial_t*huart, char*format, ...)
 {
 	va_list arg;

@@ -32,7 +32,7 @@ int main(void)
 	SystemClock_Config();
 	// configure and init gpio
 	MX_GPIO_Init();
-	MX_IWDG_Init();
+	//MX_IWDG_Init();
 	// usarts
 	MX_USART1_UART_Init();
 	//MX_USART2_UART_Init();
@@ -68,4 +68,5 @@ void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
 static void operation_1s(RTC_HandleTypeDef* hrtc)
 {
 
+	at_task_func(NULL);
 }

@@ -7,10 +7,10 @@
 
 #include "stm32f0xx_hal.h"
 // defined local definitions for UARTs
-#define MAX_FORMAT_TXT_SZ 1024
-#define MAX_INPUT_SZ	1024
+#define MAX_FORMAT_TXT_SZ 64
+#define MAX_INPUT_SZ	64
 #define SERIAL_DEBUG  &huart1
-#define SERIAL_AT &huart2
+#define SERIAL_AT &huart1
 #define pr_debugln(...) serial_println(SERIAL_DEBUG, __VA_ARGS__)
 #define pr_debugf(...) serial_printf(SERIAL_DEBUG, __VA_ARGS__)
 
@@ -26,6 +26,7 @@ int serial_print(serial_t*huart, char*data);
 int serial_printf(serial_t*huart, char*format, ...);
 int serial_println(serial_t*huart, char*format, ...);
 char* serial_getdata(serial_t*huart, uint32_t timeout);
+void serial_clear(void);
 
 // low level
 void serial_IT_enable(serial_t*huart);
