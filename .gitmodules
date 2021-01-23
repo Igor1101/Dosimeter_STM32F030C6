@@ -2,5 +2,5 @@
 	path = dosimeter
 	url = https://github.com/Igor1101/dosimeter.git
 [submodule "at_simmodule"]
-	path = at_simmodule
-	url = https://github.com/Igor1101/at_simmodule.git
+	path = simmodule_drv 
+	url = https://github.com/Igor1101/simmodule_drv.git
