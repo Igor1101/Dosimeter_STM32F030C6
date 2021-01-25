@@ -27,6 +27,7 @@ int serial_printf(serial_t*huart, char*format, ...);
 int serial_println(serial_t*huart, char*format, ...);
 char* serial_getdata(serial_t*huart, uint32_t timeout);
 void serial_clear(void);
+extern void (*serial_receive_char_callback)(int);
 
 // low level
 void serial_IT_enable(serial_t*huart);

@@ -10,6 +10,8 @@
 #include <generic/serial.h>
 #include <dosimeter/geiger_counter.h>
 #include "reset_cause.h"
+#include <simmodule_drv/sim.h>
+
 extern void SystemClock_Config(void);
 
 /*
@@ -34,14 +36,16 @@ int main(void)
 	MX_GPIO_Init();
 	//MX_IWDG_Init();
 	// usarts
+	MX_DMA_Init();
 	MX_USART1_UART_Init();
 	//MX_USART2_UART_Init();
-	MX_DMA_Init();
 	MX_I2C1_Init();
 	// init RTC
 	MX_RTC_Init();
 	tty_println("%s", reset_cause_get_name(res));
-
+	// here set some configuration:
+	serial_receive_char_callback = sim_receive_data;
+	serial_IT_enable(&huart1);
 	// main system cycle
 	while (1) {
 		if(signal_operation) {

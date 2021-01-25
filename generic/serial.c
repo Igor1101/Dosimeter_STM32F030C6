@@ -12,6 +12,7 @@
 static char formatbuf[MAX_FORMAT_TXT_SZ];
 static char inputbuf[MAX_INPUT_SZ];
 static bool receiving_answer = false;
+void (*serial_receive_char_callback)(int) = NULL;
 
 int serial_write_blk(serial_t *huart, char*pData, uint16_t Size)
 {
@@ -19,9 +20,20 @@ int serial_write_blk(serial_t *huart, char*pData, uint16_t Size)
 }
 
 
+int serial_write(serial_t *huart, char*pData, uint16_t Size)
+{
+	// first we need to save this data to own buffer
+	// since it may be changed outside before transmitten
+	static  char buf[MAX_FORMAT_TXT_SZ];
+	memcpy(buf, pData, Size);
+	while(HAL_UART_Transmit_DMA(huart, (uint8_t*)buf, Size) != HAL_OK);
+	return 0;
+}
+
+
 int serial_print(serial_t*huart, char*data)
 {
-	return serial_write_blk(huart, data, strlen(data));
+	return serial_write(huart, data, strlen(data));
 }
 
 int serial_printf(serial_t*huart, char*format, ...)
@@ -69,10 +81,7 @@ void serial_getchar_IT(serial_t*huart)
 // interrupt low level enable force
 void serial_IT_enable(serial_t*huart)
 {
-	if(huart == &huart1)
-		USART1->CR1 |= USART_CR1_RXNEIE;
-	//if(huart == &huart2)
-	//	USART2->CR1 |= USART_CR1_RXNEIE;
+	SET_BIT(huart->Instance->CR1, USART_CR1_RXNEIE);
 }
 
 // block and receive data
@@ -86,17 +95,15 @@ char* serial_getdata(serial_t*huart, uint32_t timeout)
 	serial_IT_enable(huart);
 	return inputbuf;
 }
-/**
-  * USART2 global interrupt, enabled in NVIC
-  */
-void USART2_IRQHandler(void)
+
+void USART1_IRQHandler(void)
 {
-	// default handler if receiving answer to CMD
-	if(receiving_answer)
-		HAL_UART_IRQHandler(&huart2);
-	// simply get a char
-	/*
-	 if ( USART2->SR & USART_SR_RXNE) {
-		 pr_debugf("charrecv:%c", USART2->DR);
-	 }*/
+	if (huart1.Instance->ISR & USART_ISR_RXNE) {
+		// here receive callback
+		if(serial_receive_char_callback != NULL) {
+			serial_receive_char_callback((int)huart1.Instance->RDR);
+		}
+	} else {
+		HAL_UART_IRQHandler(&huart1);
+	}
 }
