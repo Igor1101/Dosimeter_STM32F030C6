@@ -10,4 +10,5 @@
 makefile
 /.settings
 *.launch
+*Debug.cfg
 
