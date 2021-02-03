@@ -21,5 +21,6 @@ void flash_mng_init(void);
 void flash_mng_erase(void);
 void flash_mng_read(void);
 void flash_mng_write(void);
+void flash_mng_wr_default_values(void);
 
 #endif /* FLASH_MNG_H_ */

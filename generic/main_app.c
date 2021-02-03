@@ -11,6 +11,7 @@
 #include <dosimeter/geiger_counter.h>
 #include "reset_cause.h"
 #include <simmodule_drv/sim.h>
+#include <generic/flash_mng.h>
 
 extern void SystemClock_Config(void);
 
@@ -46,6 +47,13 @@ int main(void)
 	// here set some configuration:
 	serial_receive_char_callback = sim_receive_data;
 	serial_IT_enable(&huart1);
+	// flash driver init
+	flash_mng_init();
+	// write if needed
+	flash_mng_wr_default_values();
+	memset(&fdata, 0, sizeof fdata);
+	flash_mng_read();
+	tty_println("serv0:%s", fdata.server0_addr);
 	// main system cycle
 	while (1) {
 		if(signal_operation) {
