@@ -50,11 +50,15 @@ int main(void)
 	// flash driver init
 	flash_mng_init();
 	// write if needed
-	flash_mng_wr_default_values();
-	memset(&fdata, 0, sizeof fdata);
+	//flash_mng_wr_default_values();
+	//memset(&fdata, 0, sizeof fdata);
 	flash_mng_read();
 	tty_println("serv0:%s", fdata.server0_addr);
+	tty_println("port:%s", fdata.conf_port);
 	// main system cycle
+	SIM_CMD_DEBUG("AT");
+	SIM_CMD_DEBUG("ATE0");
+	SIM_CMD_DEBUG("AT+CMEE=2");
 	while (1) {
 		if(signal_operation) {
 			// operation
@@ -79,6 +83,7 @@ void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
 
 static void operation_1s(RTC_HandleTypeDef* hrtc)
 {
-
-	at_task_func(NULL);
+	flash_mng_read();
+	sim_tcp_con_init();
+	sim_tcp_send("\0qwertyew\n\r", 8);
 }

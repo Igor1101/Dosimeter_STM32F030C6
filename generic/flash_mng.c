@@ -78,6 +78,7 @@ void flash_mng_wr_default_values(void)
 	strncpy(fdata.mobile_phone, CONF_MOBILE_PHONE, sizeof fdata.mobile_phone);
 	strncpy(fdata.server0_addr, CONF_SERV0_ADDR, sizeof fdata.server0_addr);
 	strncpy(fdata.server1_addr, CONF_SERV1_ADDR, sizeof fdata.server1_addr);
+	strncpy(fdata.conf_port, CONF_PORT, sizeof fdata.conf_port);
 	// write
 	flash_mng_write();
 }

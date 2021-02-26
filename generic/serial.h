@@ -21,6 +21,7 @@ extern serial_t huart1;
 extern serial_t huart2;
 
 // useful exported functions
+int serial_write(serial_t *huart, char*pData, uint16_t Size);
 int serial_write_noblk(serial_t *huart, char*pData, uint16_t Size);
 int serial_print(serial_t*huart, char*data);
 int serial_printf(serial_t*huart, char*format, ...);

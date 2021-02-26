@@ -13,7 +13,7 @@ typedef struct {
 	char server0_addr[32];
 	char server1_addr[32];
 	char mobile_phone[16];
-	char unused[16];
+	char conf_port[8];
 } flash_data_t;
 extern flash_data_t fdata;
 
