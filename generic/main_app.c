@@ -21,7 +21,11 @@ extern void SystemClock_Config(void);
  * signal_operation should equal "true",
  * system sets this signal to false at the end of operation
  */
-static bool signal_operation = false;
+volatile uint32_t time_last_lte = 0;
+volatile uint32_t time_last_geiger_counter = 0;
+volatile bool signal_lte = false;
+volatile bool signal_geiger_counter = false;
+volatile uint32_t uptime=0;
 static void operation_1s(RTC_HandleTypeDef* hrtc);
 
 int main(void)
@@ -35,7 +39,7 @@ int main(void)
 	SystemClock_Config();
 	// configure and init gpio
 	MX_GPIO_Init();
-	//MX_IWDG_Init();
+	MX_IWDG_Init();
 	// usarts
 	MX_DMA_Init();
 	MX_USART1_UART_Init();
@@ -60,13 +64,19 @@ int main(void)
 	SIM_CMD_DEBUG("ATE0");
 	SIM_CMD_DEBUG("AT+CMEE=2");
 	while (1) {
-		if(signal_operation) {
-			// operation
-			operation_1s(&hrtc);
-			// reset watchdog
-			__HAL_IWDG_RELOAD_COUNTER(&hiwdg);
-			signal_operation = false;
+		// operation
+		if(uptime >= 10 + time_last_geiger_counter) {
+			time_last_geiger_counter = uptime;
+			tim_geiger_counter_callback_1m(NULL);
 		}
+		else if(uptime >= 60 + time_last_lte) {
+			time_last_lte = uptime;
+			sim_tcp_con_init();
+			sim_tcp_send("\0qwertyew\n\r", 8);
+			sim_tcp_con_deinit();
+		}
+		__HAL_IWDG_RELOAD_COUNTER(&hiwdg);
+			// reset watchdog
 		// goto sleep
 		HAL_PWR_EnterSLEEPMode(PWR_MAINREGULATOR_ON, PWR_SLEEPENTRY_WFI);
 	}
@@ -78,12 +88,5 @@ int main(void)
   */
 void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
 {
-	signal_operation = true;
-}
-
-static void operation_1s(RTC_HandleTypeDef* hrtc)
-{
-	flash_mng_read();
-	sim_tcp_con_init();
-	sim_tcp_send("\0qwertyew\n\r", 8);
+	uptime++;
 }
