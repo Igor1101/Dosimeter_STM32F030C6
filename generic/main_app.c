@@ -65,15 +65,19 @@ int main(void)
 	SIM_CMD_DEBUG("AT+CMEE=2");
 	while (1) {
 		// operation
-		if(uptime >= 10 + time_last_geiger_counter) {
+		if(uptime >= 40 + time_last_geiger_counter) {
+			geiger_counter_callback(uptime - time_last_geiger_counter);
 			time_last_geiger_counter = uptime;
-			tim_geiger_counter_callback_1m(NULL);
 		}
 		else if(uptime >= 60 + time_last_lte) {
-			time_last_lte = uptime;
 			sim_tcp_con_init();
-			sim_tcp_send("\0qwertyew\n\r", 8);
+			static char prdata[64];
+			snprintf(prdata, sizeof prdata, "{nanosv=%d, mkroentgen=%d}",
+					geiger_counter_nanosv_last,
+					geiger_counter_mkroentgen_last);
+			sim_tcp_send(prdata, strlen(prdata));
 			sim_tcp_con_deinit();
+			time_last_lte = uptime;
 		}
 		__HAL_IWDG_RELOAD_COUNTER(&hiwdg);
 			// reset watchdog
@@ -89,4 +93,17 @@ int main(void)
 void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
 {
 	uptime++;
+}
+
+/**
+  * @brief  EXTI line detection callback.
+  * @param  GPIO_Pin Specifies the port pin connected to corresponding EXTI line.
+  * @retval None
+  */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	if(GPIO_Pin == GPIO_PIN_0) {
+		// geiger counter
+		geiger_counter_int_callback();
+	}
 }
