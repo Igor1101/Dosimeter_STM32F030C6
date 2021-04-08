@@ -72,22 +72,7 @@ int main(void)
 	while (1) {
 		// parse task
 		if(sim_parse_task_on) {
-			char*usefuldata = strstr(sim_parse_buf , "+CGPS");
-		    //char *current_pos = usefuldata;
-		    //while (current_pos) {
-		    //    *current_pos = '\0';
-		    //    current_pos = strchr(current_pos, '\n');
-		    //}
-			if(sim_GPS_corr_data()) {
-				sim_parse_buf[sim_parse_buf_p] = 0;
-				snprintf(prdata, sizeof prdata, "{ gpscoord=%s }", sim_parse_buf);
-				sim_tcp_con_init();
-				sim_tcp_send(prdata, strlen(prdata));
-				sim_tcp_con_deinit();
-			}
-			memset(sim_parse_buf, 0, sizeof sim_parse_buf);
-			sim_parse_buf_p = 0;
-			sim_parse_task_on = false;
+			sim_task_parse();
 		}
 		// operation
 		else if(uptime >= 40 + time_last_geiger_counter) {
@@ -96,6 +81,7 @@ int main(void)
 		}
 		else if(uptime >= 60 + time_last_lte) {
 			sim_tcp_con_init();
+			// TODO: add GPS
 			snprintf(prdata, sizeof prdata, "{nanosv=%d, mkroentgen=%d}",
 					geiger_counter_nanosv_last,
 					geiger_counter_mkroentgen_last);
