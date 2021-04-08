@@ -6,4 +6,4 @@
 	url = https://github.com/Igor1101/simmodule_drv.git
 [submodule "jWrite"]
 	path = jWrite
-	url = https://github.com/jonaskgandersson/jWrite.git
+	url = https://github.com/Igor1101/jWrite.git
