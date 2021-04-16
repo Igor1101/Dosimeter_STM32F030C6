@@ -12,6 +12,9 @@
 #include "reset_cause.h"
 #include <simmodule_drv/sim.h>
 #include <generic/flash_mng.h>
+#include <jWrite/jWrite.h>
+#include <stdlib.h>
+#define DEF_ALLOC_SZ 128
 
 extern void SystemClock_Config(void);
 
@@ -27,6 +30,8 @@ volatile bool signal_lte = false;
 volatile bool signal_geiger_counter = false;
 volatile uint32_t uptime=0;
 static void operation_1s(RTC_HandleTypeDef* hrtc);
+char * JSON_create_alloc(void);
+void task_fatal_error(char*str);
 
 int main(void)
 {
@@ -80,14 +85,13 @@ int main(void)
 			time_last_geiger_counter = uptime;
 		}
 		else if(uptime >= 60 + time_last_lte) {
+			char*data_tosnd = JSON_create_alloc();
 			sim_tcp_con_init();
 			// TODO: add GPS
-			snprintf(prdata, sizeof prdata, "{nanosv=%d, mkroentgen=%d}",
-					geiger_counter_nanosv_last,
-					geiger_counter_mkroentgen_last);
-			sim_tcp_send(prdata, strlen(prdata));
+			sim_tcp_send(data_tosnd, strlen(data_tosnd));
 			sim_tcp_con_deinit();
 			time_last_lte = uptime;
+			free(data_tosnd);
 		}
 		__HAL_IWDG_RELOAD_COUNTER(&hiwdg);
 			// reset watchdog
@@ -116,4 +120,24 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		// geiger counter
 		geiger_counter_int_callback();
 	}
+}
+
+// create JSON struct
+char * JSON_create_alloc(void)
+{
+	char*buf = malloc(DEF_ALLOC_SZ);
+	if(buf == NULL)
+		task_fatal_error("CANT ALLOC");
+	jwOpen( buf, DEF_ALLOC_SZ, JW_OBJECT, JW_PRETTY );  // open root node as object
+	jwObj_string( "GPS", sim_GPS_get_data() );                  // writes "key":"value"
+	jwObj_int( "NanoSv", geiger_counter_nanosv_last);                           // writes "int":1
+	jwEnd();                                         // end the array
+	int err= jwClose();                                  // close root object - done
+	return buf;
+}
+
+void task_fatal_error(char*str)
+{
+	tty_println("err:%s", str);
+	while(1);
 }
