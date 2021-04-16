@@ -7,6 +7,8 @@
 #include "dma.h"
 #include "rtc.h"
 #include "display.h"
+#include "main.h"
+#include "tim.h"
 #include <generic/serial.h>
 #include <dosimeter/geiger_counter.h>
 #include "reset_cause.h"
@@ -28,9 +30,12 @@ volatile uint32_t time_last_lte = 0;
 volatile uint32_t time_last_geiger_counter = 0;
 volatile bool signal_lte = false;
 volatile bool signal_geiger_counter = false;
+volatile bool signal_geiger_counter_int = false;
 volatile uint32_t uptime=0;
 char * JSON_create_alloc(void);
 void task_fatal_error(char*str);
+void led_signal_fatal(void);
+void led_signal(void);
 
 int main(void)
 {
@@ -51,6 +56,8 @@ int main(void)
 	MX_I2C1_Init();
 	// init RTC
 	MX_RTC_Init();
+	// init timer
+	MX_TIM1_Init();
 	tty_println("%s", reset_cause_get_name(res));
 	// here set some configuration:
 	serial_receive_char_callback = sim_receive_data;
@@ -74,6 +81,11 @@ int main(void)
 
 	// where all data shall be printed
 	while (1) {
+		// led task if needed
+		if(signal_geiger_counter_int) {
+			signal_geiger_counter_int = false;
+			led_signal();
+		}
 		// parse task
 		if(sim_parse_task_on) {
 			sim_task_parse();
@@ -118,6 +130,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	if(GPIO_Pin == GPIO_PIN_0) {
 		// geiger counter
 		geiger_counter_int_callback();
+		signal_geiger_counter_int = true;
 	}
 }
 
@@ -148,5 +161,31 @@ char * JSON_create_alloc(void)
 void task_fatal_error(char*str)
 {
 	tty_println("err:%s", str);
+	led_signal_fatal();
 	while(1);
+}
+
+// LED CONTROLS
+
+void led_signal_fatal(void)
+{
+	while(1) {
+		HAL_Delay(1000);
+		HAL_GPIO_TogglePin(LED_SIGNAL_GPIO_Port, LED_SIGNAL_Pin);
+	}
+}
+
+void led_signal(void)
+{
+	HAL_TIM_Base_Start_IT(&htim1);
+	HAL_GPIO_WritePin(LED_SIGNAL_GPIO_Port, LED_SIGNAL_Pin, GPIO_PIN_SET);
+}
+// Callback: timer has rolled over
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	// Check which version of the timer triggered this callback and toggle LED
+	if (htim == &htim1 ) {
+		HAL_GPIO_WritePin(LED_SIGNAL_GPIO_Port, LED_SIGNAL_Pin, GPIO_PIN_RESET);
+		HAL_TIM_Base_Stop_IT(&htim1);
+	}
 }
