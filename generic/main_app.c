@@ -29,7 +29,6 @@ volatile uint32_t time_last_geiger_counter = 0;
 volatile bool signal_lte = false;
 volatile bool signal_geiger_counter = false;
 volatile uint32_t uptime=0;
-static void operation_1s(RTC_HandleTypeDef* hrtc);
 char * JSON_create_alloc(void);
 void task_fatal_error(char*str);
 
@@ -63,7 +62,8 @@ int main(void)
 	//memset(&fdata, 0, sizeof fdata);
 	flash_mng_read();
 	tty_println("serv0:%s", fdata.server0_addr);
-	tty_println("port:%s", fdata.conf_port);
+	tty_println("port:%s", fdata.port);
+	tty_println("id:%s", fdata.device_id);
 	// main system cycle
 	SIM_CMD_DEBUG("AT");
 	SIM_CMD_DEBUG("ATE0");
@@ -73,7 +73,6 @@ int main(void)
 	sim_GPS_startgetinfo(15);
 
 	// where all data shall be printed
-	static char prdata[128];
 	while (1) {
 		// parse task
 		if(sim_parse_task_on) {
@@ -128,11 +127,21 @@ char * JSON_create_alloc(void)
 	char*buf = malloc(DEF_ALLOC_SZ);
 	if(buf == NULL)
 		task_fatal_error("CANT ALLOC");
-	jwOpen( buf, DEF_ALLOC_SZ, JW_OBJECT, JW_PRETTY );  // open root node as object
-	jwObj_string( "GPS", sim_GPS_get_data() );                  // writes "key":"value"
-	jwObj_int( "NanoSv", geiger_counter_nanosv_last);                           // writes "int":1
-	jwEnd();                                         // end the array
-	int err= jwClose();                                  // close root object - done
+	// node open
+	jwOpen( buf, DEF_ALLOC_SZ, JW_OBJECT, JW_PRETTY );
+	// dev name
+	jwObj_string("dev_id", fdata.device_id);
+	// GPS
+	jwObj_string( "GPS", sim_GPS_get_data() );
+	// data
+	jwObj_int( "NanoSv", geiger_counter_nanosv_last);
+	// uptime
+	jwObj_int( "uptime_s", uptime);
+	// array end
+	jwEnd();
+	// node close
+	int err= jwClose();
+	(void)err;
 	return buf;
 }
 
