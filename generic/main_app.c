@@ -16,7 +16,7 @@
 #include <generic/flash_mng.h>
 #include <jWrite/jWrite.h>
 #include <stdlib.h>
-#define DEF_ALLOC_SZ 128
+#define DEF_ALLOC_SZ 256
 
 extern void SystemClock_Config(void);
 
