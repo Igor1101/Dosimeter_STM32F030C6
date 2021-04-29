@@ -150,6 +150,11 @@ char * JSON_create_alloc(void)
 	jwObj_int( "NanoSv", geiger_counter_nanosv_last);
 	// uptime
 	jwObj_int( "uptime_s", uptime);
+	// client type "app" or "sensor" we are sensor
+	jwObj_string("client", "sensor");
+	// report has useful embedded data inside, request to save data to DB
+	// "DBsave" "true" or "false"
+	jwObj_string("DBsave", "true");
 	// array end
 	jwEnd();
 	// node close
